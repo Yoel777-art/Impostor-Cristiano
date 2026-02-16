@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>El Impostor - Edición Bíblica</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #eee;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            width: 100%;
+            background: rgba(15, 15, 35, 0.9);
+            border: 2px solid #0f4c75;
+            border-radius: 15px;
+            padding: 40px;
+            box-shadow: 0 10px 50px rgba(0, 0, 0, 0.5),
+                        0 0 30px rgba(15, 76, 117, 0.3);
+        }
+
+        h1 {
+            text-align: center;
+            color: #3fc1c9;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            margin-bottom: 10px;
+            font-size: 2em;
+            text-shadow: 0 0 20px rgba(63, 193, 201, 0.5);
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #888;
+            font-size: 0.9em;
+            margin-bottom: 30px;
+            font-style: italic;
+        }
+
+        .screen {
+            display: none;
+        }
+
+        .screen.active {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #3fc1c9;
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 0.85em;
+            letter-spacing: 1px;
+        }
+
+        input[type="number"],
+        select {
+            width: 100%;
+            padding: 12px;
+            background: rgba(15, 76, 117, 0.3);
+            border: 1px solid #0f4c75;
+            border-radius: 5px;
+            color: #eee;
+            font-size: 1em;
+            transition: all 0.3s;
+        }
+
+        select option {
+            background: #16213e;
+            color: #eee;
+        }
+
+        input[type="number"]:focus,
+        select:focus {
+            outline: none;
+            border-color: #3fc1c9;
+            box-shadow: 0 0 15px rgba(63, 193, 201, 0.3);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #0f4c75 0%, #3fc1c9 100%);
+            border: none;
+            border-radius: 5px;
+            color: white;
+            font-size: 1.1em;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(63, 193, 201, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 7px 20px rgba(63, 193, 201, 0.5);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #444 0%, #666 100%);
+            margin-top: 10px;
+        }
+
+        .error {
+            color: #ff6b6b;
+            font-size: 0.9em;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .card-container {
+            perspective: 1000px;
+            min-height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 30px 0;
+        }
+
+        .card {
+            width: 100%;
+            height: 300px;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.6s, opacity 0.3s;
+            cursor: pointer;
+            opacity: 1;
+        }
+
+        .card.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .card.hiding {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .card-front {
+            background: linear-gradient(135deg, #1a1a2e 0%, #0f4c75 100%);
+            border: 3px solid #3fc1c9;
+        }
+
+        .card-back {
+            background: linear-gradient(135deg, #0f4c75 0%, #3fc1c9 100%);
+            transform: rotateY(180deg);
+        }
+
+        .card-back.impostor {
+            background: linear-gradient(135deg, #8b0000 0%, #ff4444 100%);
+        }
+
+        .card-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+        }
+
+        .card-text {
+            font-size: 1.3em;
+            text-align: center;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .card-word {
+            font-size: 2em;
+            margin-top: 15px;
+            color: #fff;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
+
+        .card-category {
+            font-size: 0.9em;
+            margin-top: 10px;
+            color: rgba(255, 255, 255, 0.7);
+            font-style: italic;
+        }
+
+        .player-info {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: rgba(15, 76, 117, 0.2);
+            border-radius: 10px;
+            border: 1px solid #0f4c75;
+        }
+
+        .player-number {
+            font-size: 1.5em;
+            color: #3fc1c9;
+            font-weight: bold;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: rgba(15, 76, 117, 0.2);
+            border-radius: 10px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 0.8em;
+            color: #888;
+            text-transform: uppercase;
+        }
+
+        .stat-value {
+            font-size: 1.5em;
+            color: #3fc1c9;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+
+        .voting-area {
+            margin: 20px 0;
+        }
+
+        .player-vote-btn {
+            width: 100%;
+            padding: 12px;
+            margin: 5px 0;
+            background: rgba(15, 76, 117, 0.5);
+            border: 1px solid #0f4c75;
+            border-radius: 5px;
+            color: #eee;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 1em;
+        }
+
+        .player-vote-btn:hover {
+            background: rgba(15, 76, 117, 0.8);
+            border-color: #3fc1c9;
+        }
+
+        .player-vote-btn.selected {
+            background: #3fc1c9;
+            border-color: #3fc1c9;
+            color: #000;
+        }
+
+        .result-message {
+            text-align: center;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 10px;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+
+        .result-success {
+            background: rgba(76, 175, 80, 0.3);
+            border: 2px solid #4caf50;
+            color: #4caf50;
+        }
+
+        .result-failure {
+            background: rgba(244, 67, 54, 0.3);
+            border: 2px solid #f44336;
+            color: #f44336;
+        }
+
+        .instruction {
+            text-align: center;
+            color: #888;
+            font-size: 0.95em;
+            margin: 15px 0;
+            line-height: 1.6;
+        }
+
+        .category-info {
+            text-align: center;
+            padding: 10px;
+            margin-bottom: 15px;
+            background: rgba(63, 193, 201, 0.1);
+            border-radius: 5px;
+            color: #3fc1c9;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 1.5em;
+            }
+
+            .card {
+                height: 250px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Pantalla de Inicio -->
+        <div id="setupScreen" class="screen active">
+            <h1>🕵️ El Impostor</h1>
+            <p class="subtitle">Edición Bíblica Cristiana</p>
+            
+            <div class="form-group">
+                <label for="category">Categoría Bíblica</label>
+                <select id="category">
+                    <option value="personajes_at">Personajes del Antiguo Testamento</option>
+                    <option value="personajes_nt">Personajes del Nuevo Testamento</option>
+                    <option value="lugares">Lugares Bíblicos</option>
+                    <option value="milagros">Milagros de Jesús</option>
+                    <option value="libros">Libros de la Biblia</option>
+                    <option value="eventos">Eventos Bíblicos</option>
+                    <option value="objetos">Objetos Sagrados</option>
+                    <option value="mandamientos">Enseñanzas y Mandamientos</option>
+                    <option value="random">🎲 Aleatorio (Todas las categorías)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="numPlayers">Número de Jugadores</label>
+                <input type="number" id="numPlayers" min="3" max="20" value="5">
+                <span class="error" id="playersError">Mínimo 3 jugadores</span>
+            </div>
+
+            <div class="form-group">
+                <label for="numImpostors">Número de Impostores</label>
+                <input type="number" id="numImpostors" min="1" max="5" value="1">
+                <span class="error" id="impostorsError">Los impostores deben ser menos que los civiles</span>
+            </div>
+
+            <button class="btn" onclick="startGame()">Iniciar Juego</button>
+        </div>
+
+        <!-- Pantalla de Turnos -->
+        <div id="turnScreen" class="screen">
+            <div class="stats">
+                <div class="stat-item">
+                    <div class="stat-label">Ronda</div>
+                    <div class="stat-value" id="roundCounter">1</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Jugadores</div>
+                    <div class="stat-value" id="totalPlayers">0</div>
+                </div>
+            </div>
+
+            <div class="category-info" id="categoryDisplay"></div>
+
+            <div class="player-info">
+                <div class="player-number">Jugador <span id="currentPlayerNum">1</span></div>
+            </div>
+
+            <p class="instruction">👆 Toca la carta para revelar tu rol</p>
+
+            <div class="card-container">
+                <div class="card" id="card" onclick="flipCard()">
+                    <div class="card-face card-front">
+                        <div class="card-icon">🎴</div>
+                        <div class="card-text">Toca para revelar</div>
+                    </div>
+                    <div class="card-face card-back" id="cardBack">
+                        <div class="card-icon" id="cardIcon">📖</div>
+                        <div class="card-text" id="cardRole">Palabra Secreta</div>
+                        <div class="card-word" id="cardWord">PALABRA</div>
+                        <div class="card-category" id="cardCategoryLabel"></div>
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn" id="nextPlayerBtn" onclick="nextPlayer()" style="display:none;">
+                Siguiente Jugador →
+            </button>
+        </div>
+
+        <!-- Pantalla de Votación -->
+        <div id="votingScreen" class="screen">
+            <h2 style="text-align: center; color: #3fc1c9; margin-bottom: 20px;">
+                🗳️ VOTACIÓN
+            </h2>
+
+            <p class="instruction">
+                Todos han visto sus cartas. Ahora discutan y voten por quien creen que es el impostor.
+            </p>
+
+            <div class="voting-area" id="votingArea"></div>
+
+            <button class="btn" onclick="submitVote()">Confirmar Voto</button>
+            <button class="btn btn-secondary" onclick="showResults()">Ver Resultados</button>
+        </div>
+
+        <!-- Pantalla de Resultados -->
+        <div id="resultsScreen" class="screen">
+            <h2 style="text-align: center; color: #3fc1c9; margin-bottom: 20px;">
+                🏆 RESULTADOS
+            </h2>
+
+            <div class="result-message" id="resultMessage"></div>
+
+            <div class="stats">
+                <div class="stat-item">
+                    <div class="stat-label">Rondas Jugadas</div>
+                    <div class="stat-value" id="totalRounds">1</div>
+                </div>
+            </div>
+
+            <button class="btn" onclick="playAgain()">Jugar Nueva Ronda</button>
+            <button class="btn btn-secondary" onclick="resetGame()">Nuevo Juego</button>
+        </div>
+    </div>
+
+    <script>
+        // Catálogo de palabras bíblicas organizadas por categorías
+        const biblicalCatalog = {
+            personajes_at: {
+                name: "Personajes del Antiguo Testamento",
+                words: [
+                    "Moisés", "Abraham", "Isaac", "Jacob", "José", "David", "Salomón",
+                    "Noé", "Daniel", "Elías", "Eliseo", "Samuel", "Sansón", "Josué",
+                    "Rut", "Ester", "Débora", "Gedeón", "Job", "Jonás", "Ezequiel",
+                    "Jeremías", "Isaías", "Adán", "Eva", "Caín", "Abel", "Enoc"
+                ]
+            },
+            personajes_nt: {
+                name: "Personajes del Nuevo Testamento",
+                words: [
+                    "Jesús", "Pedro", "Pablo", "Juan", "Mateo", "Marcos", "Lucas",
+                    "María", "José", "Juan el Bautista", "Tomás", "Santiago", "Felipe",
+                    "Andrés", "Bartolomé", "Matías", "Lázaro", "Marta", "María Magdalena",
+                    "Zaqueo", "Nicodemo", "Herodes", "Pilato", "Esteban", "Timoteo"
+                ]
+            },
+            lugares: {
+                name: "Lugares Bíblicos",
+                words: [
+                    "Jerusalén", "Belén", "Nazaret", "Galilea", "Jericó", "Egipto",
+                    "Babilonia", "Nínive", "Sodoma", "Gomorra", "Monte Sinaí", "Monte Carmelo",
+                    "Mar Rojo", "Río Jordán", "Getsemaní", "Gólgota", "Betania", "Caná",
+                    "Cesarea", "Damasco", "Antioquía", "Éfeso", "Corinto", "Roma"
+                ]
+            },
+            milagros: {
+                name: "Milagros de Jesús",
+                words: [
+                    "Agua convertida en vino", "Sanación del ciego", "Resurrección de Lázaro",
+                    "Multiplicación de panes", "Calmar la tempestad", "Caminar sobre el agua",
+                    "Sanación del paralítico", "Pesca milagrosa", "Sanación del leproso",
+                    "Sanación de la suegra de Pedro", "Higuera seca", "Moneda en el pez",
+                    "Expulsión de demonios", "Sanación a distancia", "Oreja de Malco"
+                ]
+            },
+            libros: {
+                name: "Libros de la Biblia",
+                words: [
+                    "Génesis", "Éxodo", "Levítico", "Números", "Deuteronomio", "Josué",
+                    "Jueces", "Rut", "Samuel", "Reyes", "Crónicas", "Esdras", "Nehemías",
+                    "Ester", "Job", "Salmos", "Proverbios", "Eclesiastés", "Cantares",
+                    "Isaías", "Jeremías", "Lamentaciones", "Ezequiel", "Daniel", "Oseas",
+                    "Joel", "Amós", "Abdías", "Jonás", "Miqueas", "Nahúm", "Habacuc",
+                    "Sofonías", "Hageo", "Zacarías", "Malaquías", "Mateo", "Marcos",
+                    "Lucas", "Juan", "Hechos", "Romanos", "Corintios", "Gálatas",
+                    "Efesios", "Filipenses", "Colosenses", "Tesalonicenses", "Timoteo",
+                    "Tito", "Filemón", "Hebreos", "Santiago", "Pedro", "Juan (cartas)",
+                    "Judas", "Apocalipsis"
+                ]
+            },
+            eventos: {
+                name: "Eventos Bíblicos",
+                words: [
+                    "La Creación", "El Diluvio", "Torre de Babel", "Las Diez Plagas",
+                    "Paso del Mar Rojo", "Los Diez Mandamientos", "Caída de Jericó",
+                    "David y Goliat", "El Arca de Noé", "Nacimiento de Jesús",
+                    "Bautismo de Jesús", "Tentación en el desierto", "La Transfiguración",
+                    "Última Cena", "Crucifixión", "Resurrección", "Ascensión",
+                    "Pentecostés", "Conversión de Pablo", "Juicio Final"
+                ]
+            },
+            objetos: {
+                name: "Objetos Sagrados",
+                words: [
+                    "Arca del Pacto", "Tablas de la Ley", "Vara de Aarón", "Maná",
+                    "Arca de Noé", "La Cruz", "Corona de Espinas", "Santo Grial",
+                    "Candelabro de Oro", "Altar del Incienso", "Efod", "Urim y Tumim",
+                    "Trompetas de Jericó", "Piedras del Jordán", "Pan y Vino",
+                    "Aceite de Unción", "Perfume de Nardo", "Túnica sin Costura"
+                ]
+            },
+            mandamientos: {
+                name: "Enseñanzas y Mandamientos",
+                words: [
+                    "Amarás a Dios", "No tendrás dioses ajenos", "No tomarás el nombre en vano",
+                    "Santificarás el día de reposo", "Honra a tu padre y madre",
+                    "No matarás", "No cometerás adulterio", "No hurtarás",
+                    "No darás falso testimonio", "No codiciarás", "Ama a tu prójimo",
+                    "El Gran Mandamiento", "Bienaventuranzas", "Frutos del Espíritu",
+                    "Armadura de Dios", "El Sermón del Monte", "Parábola del Buen Samaritano",
+                    "Parábola del Hijo Pródigo", "La Gran Comisión", "Fe, Esperanza y Amor"
+                ]
+            }
+        };
+
+        // Variables del juego
+        let numPlayers = 0;
+        let numImpostors = 0;
+        let secretWord = '';
+        let selectedCategory = '';
+        let categoryName = '';
+        let currentPlayer = 0;
+        let players = [];
+        let cardFlipped = false;
+        let roundCount = 1;
+        let selectedVote = null;
+        let impostorIndices = [];
+
+        // Obtener palabra aleatoria de una categoría
+        function getRandomWord(category) {
+            if (category === 'random') {
+                // Seleccionar una categoría aleatoria
+                const categories = Object.keys(biblicalCatalog);
+                category = categories[Math.floor(Math.random() * categories.length)];
+            }
+            
+            const categoryData = biblicalCatalog[category];
+            const words = categoryData.words;
+            const randomIndex = Math.floor(Math.random() * words.length);
+            
+            return {
+                word: words[randomIndex],
+                category: categoryData.name
+            };
+        }
+
+        // Iniciar el juego
+        function startGame() {
+            // Validar inputs
+            numPlayers = parseInt(document.getElementById('numPlayers').value);
+            numImpostors = parseInt(document.getElementById('numImpostors').value);
+            selectedCategory = document.getElementById('category').value;
+
+            // Reset errores
+            document.querySelectorAll('.error').forEach(e => e.style.display = 'none');
+
+            let hasError = false;
+
+            if (numPlayers < 3) {
+                document.getElementById('playersError').style.display = 'block';
+                hasError = true;
+            }
+
+            if (numImpostors >= numPlayers || numImpostors < 1) {
+                document.getElementById('impostorsError').style.display = 'block';
+                hasError = true;
+            }
+
+            if (hasError) return;
+
+            // Obtener palabra aleatoria
+            const wordData = getRandomWord(selectedCategory);
+            secretWord = wordData.word;
+            categoryName = wordData.category;
+
+            // Preparar jugadores
+            setupPlayers();
+            
+            // Mostrar pantalla de turnos
+            showScreen('turnScreen');
+            document.getElementById('totalPlayers').textContent = numPlayers;
+            document.getElementById('categoryDisplay').textContent = `📚 ${categoryName}`;
+            currentPlayer = 0;
+            showCurrentPlayer();
+        }
+
+        // Configurar roles de jugadores
+        function setupPlayers() {
+            players = [];
+            impostorIndices = [];
+            
+            // Crear array de jugadores
+            for (let i = 0; i < numPlayers; i++) {
+                players.push({ isImpostor: false });
+            }
+
+            // Asignar impostores aleatoriamente
+            let impostorsAssigned = 0;
+            while (impostorsAssigned < numImpostors) {
+                let randomIndex = Math.floor(Math.random() * numPlayers);
+                if (!players[randomIndex].isImpostor) {
+                    players[randomIndex].isImpostor = true;
+                    impostorIndices.push(randomIndex);
+                    impostorsAssigned++;
+                }
+            }
+        }
+
+        // Mostrar jugador actual
+        function showCurrentPlayer() {
+            const card = document.getElementById('card');
+            
+            // Primero ocultar la carta con fade out
+            card.classList.add('hiding');
+            
+            setTimeout(() => {
+                // Actualizar información del jugador
+                document.getElementById('currentPlayerNum').textContent = currentPlayer + 1;
+                
+                // Resetear carta (mientras está oculta)
+                card.classList.remove('flipped');
+                cardFlipped = false;
+                
+                // Ocultar botón siguiente
+                document.getElementById('nextPlayerBtn').style.display = 'none';
+
+                // Configurar contenido de la carta
+                const cardBack = document.getElementById('cardBack');
+                const cardIcon = document.getElementById('cardIcon');
+                const cardRole = document.getElementById('cardRole');
+                const cardWord = document.getElementById('cardWord');
+                const cardCategoryLabel = document.getElementById('cardCategoryLabel');
+
+                if (players[currentPlayer].isImpostor) {
+                    cardBack.classList.add('impostor');
+                    cardIcon.textContent = '🎭';
+                    cardRole.textContent = '¡Eres el Impostor!';
+                    cardWord.textContent = 'Descubre la palabra secreta';
+                    cardCategoryLabel.textContent = `Categoría: ${categoryName}`;
+                } else {
+                    cardBack.classList.remove('impostor');
+                    cardIcon.textContent = '📖';
+                    cardRole.textContent = 'Palabra Secreta';
+                    cardWord.textContent = secretWord;
+                    cardCategoryLabel.textContent = categoryName;
+                }
+                
+                // Mostrar la carta nuevamente con fade in
+                setTimeout(() => {
+                    card.classList.remove('hiding');
+                }, 50);
+            }, 300);
+        }
+
+        // Voltear carta
+        function flipCard() {
+            if (cardFlipped) return;
+            
+            const card = document.getElementById('card');
+            card.classList.add('flipped');
+            cardFlipped = true;
+
+            // Mostrar botón después de un momento
+            setTimeout(() => {
+                document.getElementById('nextPlayerBtn').style.display = 'block';
+            }, 600);
+        }
+
+        // Siguiente jugador
+        function nextPlayer() {
+            currentPlayer++;
+            
+            if (currentPlayer >= numPlayers) {
+                // Todos vieron sus cartas, ir a votación
+                goToVoting();
+            } else {
+                showCurrentPlayer();
+            }
+        }
+
+        // Ir a pantalla de votación
+        function goToVoting() {
+            showScreen('votingScreen');
+            
+            // Crear botones de votación
+            const votingArea = document.getElementById('votingArea');
+            votingArea.innerHTML = '';
+            
+            for (let i = 0; i < numPlayers; i++) {
+                const btn = document.createElement('button');
+                btn.className = 'player-vote-btn';
+                btn.textContent = `Jugador ${i + 1}`;
+                btn.onclick = () => selectVote(i, btn);
+                votingArea.appendChild(btn);
+            }
+        }
+
+        // Seleccionar voto
+        function selectVote(playerIndex, button) {
+            // Deseleccionar todos
+            document.querySelectorAll('.player-vote-btn').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+            
+            // Seleccionar este
+            button.classList.add('selected');
+            selectedVote = playerIndex;
+        }
+
+        // Enviar voto
+        function submitVote() {
+            if (selectedVote === null) {
+                alert('Por favor selecciona un jugador');
+                return;
+            }
+            showResults();
+        }
+
+        // Mostrar resultados
+        function showResults() {
+            showScreen('resultsScreen');
+            
+            const resultMessage = document.getElementById('resultMessage');
+            const isCorrect = selectedVote !== null && players[selectedVote].isImpostor;
+            
+            if (isCorrect) {
+                resultMessage.className = 'result-message result-success';
+                resultMessage.innerHTML = `
+                    🎉 ¡VICTORIA!<br>
+                    Eliminaron correctamente al impostor (Jugador ${selectedVote + 1})<br>
+                    <small>La palabra era: <strong>${secretWord}</strong></small>
+                `;
+            } else {
+                resultMessage.className = 'result-message result-failure';
+                let impostorList = impostorIndices.map(i => `Jugador ${i + 1}`).join(', ');
+                resultMessage.innerHTML = `
+                    ❌ ¡EL IMPOSTOR GANÓ!<br>
+                    ${selectedVote !== null ? `Votaron por: Jugador ${selectedVote + 1}` : 'No hubo votación'}<br>
+                    El/Los impostor(es) era(n): ${impostorList}<br>
+                    <small>La palabra era: <strong>${secretWord}</strong></small>
+                `;
+            }
+            
+            document.getElementById('totalRounds').textContent = roundCount;
+        }
+
+        // Jugar de nuevo (misma configuración pero nueva palabra)
+        function playAgain() {
+            roundCount++;
+            document.getElementById('roundCounter').textContent = roundCount;
+            
+            // Obtener nueva palabra aleatoria
+            const wordData = getRandomWord(selectedCategory);
+            secretWord = wordData.word;
+            categoryName = wordData.category;
+            
+            setupPlayers();
+            currentPlayer = 0;
+            selectedVote = null;
+            showScreen('turnScreen');
+            document.getElementById('categoryDisplay').textContent = `📚 ${categoryName}`;
+            showCurrentPlayer();
+        }
+
+        // Resetear juego completamente
+        function resetGame() {
+            roundCount = 1;
+            document.getElementById('roundCounter').textContent = roundCount;
+            document.getElementById('numPlayers').value = 5;
+            document.getElementById('numImpostors').value = 1;
+            document.getElementById('category').value = 'personajes_at';
+            selectedVote = null;
+            showScreen('setupScreen');
+        }
+
+        // Cambiar de pantalla
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            document.getElementById(screenId).classList.add('active');
+        }
+    </script>
+</body>
+</html>
